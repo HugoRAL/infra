@@ -90,8 +90,11 @@
 
                 // Processar a resposta do servidor
                 if (response.ok) {
-                    messageDiv.style.color = 'green';
-                    messageDiv.textContent = "Login bem-sucedido!";  // Mensagem de sucesso
+                    // Armazenar user_id e username no sessionStorage
+                    sessionStorage.setItem('user_id', result.user_id);
+                    sessionStorage.setItem('username', username);
+                    // Redirecionar para a página divida.html
+                    window.location.href = 'divida.html';
                 } else {
                     messageDiv.style.color = 'red';
                     messageDiv.textContent = result.error;  // Usar a mensagem de erro do servidor

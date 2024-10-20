@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Dívidas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0e7ff;
+            margin: 0;
+            display: flex;
+            height: 100vh; /* Altura total da tela */
+        }
+
+        /* Estilo da coluna esquerda */
+        .sidebar {
+            width: 250px;
+            background-color: #3b82f6; /* Azul */
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            height: 100%; /* Ocupa toda a altura da tela */
+        }
+
+        .sidebar img {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+        }
+
+        .sidebar h2 {
+            margin: 10px 0;
+            font-size: 1.5em;
+        }
+
+        .sidebar button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #fff;
+            color: #3b82f6;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            width: 100%; /* Botão ocupa toda a largura da sidebar */
+        }
+
+        .sidebar button:hover {
+            background-color: #e0e7ff;
+        }
+
+        /* Estilo da tabela */
+        .content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .total {
+            font-size: 2em;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <img src="assets\logo-do-banco.png" alt="Logo do Banco"> <!-- Logo do banco -->
+        <h2 id="user-name">Nome do Usuário</h2>
+        <button id="amortization-button">Amortização</button>
+    </div>
+    <div class="content">
+        <div class="header">
+            <h1>Consulta de Dívidas</h1>
+            <div class="total" id="total-divida"></div>
+            <div id="taxa-juros"></div>
+        </div>
+        <table id="divida-table">
+            <thead>
+                <tr>
+                    <th>Dívida Total</th>
+                    <th>Prestação</th>
+                    <th>Taxa de Juros</th>
+                    <th>Data de Vencimento</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dados da tabela serão inseridos aqui via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Recuperar user_id e username do sessionStorage
+        const userId = sessionStorage.getItem('user_id');
+        const username = sessionStorage.getItem('username');
+
+        // Exibir nome do usuário na sidebar
+        if (username) {
+            document.getElementById('user-name').textContent = username;
+        }
+
+        // Função para buscar dívidas
+        async function buscarDividas() {
+    try {
+        const response = await fetch('http://localhost:5001/micro_buscar_divida', {  // Atualizando a URL
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ user_id: parseInt(userId) }) // Envia o user_id como inteiro
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro ao buscar dívidas');
+        }
+
+        const data = await response.json();
+        exibirDividas(data);
+    } catch (error) {
+        console.error('Erro:', error);
+    }
+}
+
+        // Função para exibir as dívidas na tabela
+        function exibirDividas(data) {
+            const tableBody = document.querySelector('#divida-table tbody');
+            tableBody.innerHTML = ''; // Limpa a tabela
+
+            // Atualiza total e taxa de juros
+            document.getElementById('total-divida').textContent = `Total a Pagar: ${data.total_divida.toFixed(2)} €`;
+            document.getElementById('taxa-juros').textContent = `Taxa de Juros: ${data.taxa_juros}`;
+
+            // Adiciona os registros da dívida
+            data.table_data.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.divida_total.toFixed(2)} €</td>
+                    <td>${record.prestacao.toFixed(2)} €</td>
+                    <td>${record.taxa_juros}</td>
+                    <td>${record.data}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Chama a função para buscar dívidas ao carregar a página
+        document.addEventListener('DOMContentLoaded', buscarDividas);
+    </script>
+</body>
+</html>
