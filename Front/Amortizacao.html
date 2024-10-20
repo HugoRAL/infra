@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amortização</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0e7ff;
+            margin: 0;
+            display: flex;
+            height: 100vh; /* Altura total da tela */
+        }
+
+        /* Estilo da coluna esquerda */
+        .sidebar {
+            width: 250px;
+            background-color: #3b82f6; /* Azul */
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            height: 100%; /* Ocupa toda a altura da tela */
+        }
+
+        .sidebar img {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+        }
+
+        .sidebar h2 {
+            margin: 10px 0;
+            font-size: 1.5em;
+        }
+
+        .sidebar button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #fff;
+            color: #3b82f6;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            width: 100%; /* Botão ocupa toda a largura da sidebar */
+        }
+
+        .sidebar button:hover {
+            background-color: #e0e7ff;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .resultado {
+            margin: 10px 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button#calcular-button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        button#calcular-button:hover {
+            background-color: #2563eb;
+        }
+
+        table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        th {
+            background-color: #3b82f6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <img src="assets/logo-do-banco.png" alt="Logo do Banco"> <!-- Logo do banco -->
+        <h2 id="user-name">Nome do Usuário</h2>
+        <button id="divida-button">Dívida</button>
+        <button id="amortization-button">Amortização</button>
+    </div>
+    <div class="container">
+        <div class="content">
+            <h1>Resultado da Amortização</h1>
+            <div class="resultado" id="resultado-total-divida"></div>
+            <div class="resultado" id="resultado-prestacao"></div>
+            <div class="resultado" id="resultado-juros"></div>
+            
+            <h2>Calcular Amortização</h2>
+            <input type="number" id="amortizar" placeholder="Valor a Amortizar" />
+            <button id="calcular-button">Calcular</button>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Dívida Remanescente</th>
+                        <th>Juros Totais</th>
+                        <th>Meses</th>
+                    </tr>
+                </thead>
+                <tbody id="resultado-tabela">
+                    <!-- Resultados da amortização serão inseridos aqui -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Recuperar dados do sessionStorage
+        const totalDivida = parseFloat(sessionStorage.getItem('total_divida'));
+        const prestacao = parseFloat(sessionStorage.getItem('prestacao'));
+        const juros = parseFloat(sessionStorage.getItem('juros'));
+
+        // Exibir os resultados
+        document.getElementById('resultado-total-divida').textContent = `Total da Dívida: ${totalDivida.toFixed(2)} €`;
+        document.getElementById('resultado-prestacao').textContent = `Prestação: ${(prestacao - (totalDivida* juros)).toFixed(2)} €`;
+        document.getElementById('resultado-juros').textContent = `Juros: ${(juros * 100).toFixed(2)} %`;
+
+        // Recuperar user_id e username do sessionStorage
+        const username = sessionStorage.getItem('username');
+
+        // Exibir nome do usuário na sidebar
+        if (username) {
+            document.getElementById('user-name').textContent = username;
+        }
+
+        // Configurar botão de Dívida
+        document.getElementById('divida-button').addEventListener('click', () => {
+            window.location.href = 'index.html'; // Altere 'index.html' para o nome do seu arquivo de consulta de dívidas, se necessário
+        });
+
+        // Configurar botão de Amortização (opcional se não for necessário)
+        document.getElementById('amortization-button').addEventListener('click', () => {
+            window.location.href = 'Amortizacao.html'; // Altere se necessário
+        });
+
+        // Calcular a amortização ao clicar no botão
+        document.getElementById('calcular-button').addEventListener('click', () => {
+            const amortizar = parseFloat(document.getElementById('amortizar').value);
+
+            // Validação dos dados de entrada
+            if (isNaN(amortizar) || amortizar <= 0) {
+                alert('Por favor, insira um valor a amortizar válido.');
+                return;
+            }
+
+            // Dados a serem enviados na requisição
+            const data = {
+                divida_total: totalDivida,
+                amortizacao: amortizar,
+                prestacao: (prestacao - (totalDivida* juros)),
+                taxa_juros_anual: juros
+            };
+
+            // Fazer a requisição POST para o endpoint
+            fetch('http://localhost:5003/calcular_divida', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro na requisição: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(result => {
+                // Atualizar a tabela com os resultados
+                const tbody = document.getElementById('resultado-tabela');
+                tbody.innerHTML = ''; // Limpar a tabela antes de adicionar novos dados
+
+                const row = `
+                    <tr>
+                        <td>${result.divida_remanescente.toFixed(2)} €</td>
+                        <td>${result.juros_totais.toFixed(2)} €</td>
+                        <td>${result.meses.toFixed(2)}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Ocorreu um erro ao calcular a amortização.'); // Mensagem de erro ao usuário
+            });
+        });
+    </script>
+</body>
+</html>

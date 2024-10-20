@@ -111,8 +111,9 @@
 </head>
 <body>
     <div class="sidebar">
-        <img src="assets\logo-do-banco.png" alt="Logo do Banco"> <!-- Logo do banco -->
+        <img src="assets/logo-do-banco.png" alt="Logo do Banco"> <!-- Logo do banco -->
         <h2 id="user-name">Nome do Usuário</h2>
+        <button id="divida-button">Dívida</button>
         <button id="amortization-button">Amortização</button>
     </div>
     <div class="content">
@@ -148,25 +149,25 @@
 
         // Função para buscar dívidas
         async function buscarDividas() {
-    try {
-        const response = await fetch('http://localhost:5001/micro_buscar_divida', {  // Atualizando a URL
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ user_id: parseInt(userId) }) // Envia o user_id como inteiro
-        });
-        
-        if (!response.ok) {
-            throw new Error('Erro ao buscar dívidas');
-        }
+            try {
+                const response = await fetch('http://localhost:5001/micro_buscar_divida', {  // Atualizando a URL
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: parseInt(userId) }) // Envia o user_id como inteiro
+                });
 
-        const data = await response.json();
-        exibirDividas(data);
-    } catch (error) {
-        console.error('Erro:', error);
-    }
-}
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar dívidas');
+                }
+
+                const data = await response.json();
+                exibirDividas(data);
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
 
         // Função para exibir as dívidas na tabela
         function exibirDividas(data) {
@@ -189,6 +190,24 @@
                 tableBody.appendChild(row);
             });
         }
+
+        // Configurar botão de Amortização
+        document.getElementById('amortization-button').addEventListener('click', () => {
+            const totalDivida = document.getElementById('total-divida').textContent.replace('Total a Pagar: ', '').replace(' €', '');
+            const prestacao = document.querySelector('#divida-table tbody tr td:nth-child(2)').textContent.replace(' €', '');
+            const taxaJuros = document.getElementById('taxa-juros').textContent.replace('Taxa de Juros: ', '');
+
+            // Calcular o valor adicional da prestação devido aos juros
+            const juros = (parseFloat(taxaJuros) / 100).toFixed(2);
+
+            // Armazenar dados no sessionStorage
+            sessionStorage.setItem('total_divida', totalDivida);
+            sessionStorage.setItem('prestacao', prestacao);
+            sessionStorage.setItem('juros', juros);
+
+            // Redirecionar para a página de amortização
+            window.location.href = 'Amortizacao.html';
+        });
 
         // Chama a função para buscar dívidas ao carregar a página
         document.addEventListener('DOMContentLoaded', buscarDividas);

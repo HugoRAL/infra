@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Importa CORS
 import requests
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
+CORS(app)  # Habilita CORS para todas as rotas
 
 # URL do contêiner que já possui a função buscar_divida
-BUSCAR_DIVIDA_URL = 'http://172.17.0.3:5000/buscar_divida'  # Atualizado para o novo IP
+BUSCAR_DIVIDA_URL = 'http://172.17.0.4:5000/buscar_divida'  # Atualizado para o novo IP
 
 @app.route('/micro_buscar_divida', methods=['POST'])
 def micro_buscar_divida():
@@ -41,33 +43,35 @@ def micro_buscar_divida():
         divida_juros = record['DIVIDA_JURO']
         divida_pagamento_mensal = record['DIVIDA_PAGAMENTO_MENSAL']
         
-        # Guarda a dívida total e a taxa de juros
-        total_divida = divida_montante
-        taxa_juros = f"{divida_juros}%"
-
-        # Cria a linha da tabela para os próximos 5 meses
-        for month in range(1, 6):
-            # Calcula a dívida remanescente considerando as prestações pagas
-            divida_restante = divida_montante - (divida_pagamento_mensal * (month - 1))
-
-            # Garante que a dívida não seja negativa
-            if divida_restante < 0:
-                divida_restante = 0
-
-            # Calcula a prestação mensal com juros
-            prestacao = divida_pagamento_mensal + (divida_restante * (divida_juros / 100))
-
-            # Define a data do pagamento (dia 1 de cada mês)
+        # Calcula a prestação mensal com juros
+        prestacao = divida_pagamento_mensal + (divida_montante * (divida_juros / 100))
+        
+        # Cria a linha da tabela
+        for month in range(0, 5):  # Gerar para os próximos 5 meses
             data_vencimento = (datetime.now() + timedelta(days=30 * month)).replace(day=1)
             formatted_date = data_vencimento.strftime('%d/%m/%Y')
 
+            # Calcula a dívida para o mês corrente
+            if month == 0:
+                divida_total = divida_montante  # No primeiro mês, dívida total é a original
+            else:
+                divida_total = divida_montante - (divida_pagamento_mensal * month)  # Reduz a dívida mensalmente
+
+            # Evita que a dívida fique negativa
+            if divida_total < 0:
+                divida_total = 0
+
             # Adiciona o registro à tabela
             table_data.append({
-                "divida_total": round(divida_restante, 2),  # Arredondar para 2 casas decimais
-                "prestacao": round(prestacao, 2),           # Arredondar para 2 casas decimais
+                "divida_total": round(divida_total, 2),  # Arredonda para 2 casas decimais
+                "prestacao": round(prestacao, 2),  # Arredondar para 2 casas decimais
                 "taxa_juros": f"{divida_juros}%",
                 "data": formatted_date
             })
+
+        # Guarda a dívida total e a taxa de juros
+        total_divida += divida_montante
+        taxa_juros = f"{divida_juros}%"
 
     # Retorna os dados
     return jsonify({
