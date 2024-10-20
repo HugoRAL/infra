@@ -1,0 +1,18 @@
+services:
+  mysql:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: BaseDados
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: dev
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: always
+
+volumes:
+  mysql_data:
