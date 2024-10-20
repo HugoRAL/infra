@@ -1,0 +1,21 @@
+version: '3.8'  # Especifica a versão do Compose
+
+services:
+  prometheus:
+    image: prom/prometheus:latest  # Imagem oficial do Prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml  # Monta o arquivo de configuração
+    ports:
+      - "9090:9090"  # Mapeia a porta do Prometheus
+    networks:
+      - monitoring  # Coloca o serviço na rede de monitoramento
+
+  grafana:
+    image: grafana/grafana:latest  # Imagem oficial do Grafana
+    ports:
+      - "3000:3000"  # Mapeia a porta do Grafana
+    networks:
+      - monitoring  # Coloca o serviço na rede de monitoramento
+
+networks:
+  monitoring:  # Define a rede de monitoramento
