@@ -2,8 +2,6 @@ global:
   scrape_interval: 15s  # Intervalo para coletar métricas
 
 scrape_configs:
-  - job_name: 'docker'
+  - job_name: 'flask_app'
     static_configs:
-      - targets: ['172.17.0.5:5003', '172.17.0.4:5000', '172.17.0.3:5001']  # Substitua pelos IPs dos seus serviços
-
-
+      - targets: ['flask_app:5003']

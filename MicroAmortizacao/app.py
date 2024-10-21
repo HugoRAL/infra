@@ -1,8 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # Importa a biblioteca CORS
+from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 app = Flask(__name__)
 CORS(app)  # Habilita CORS para todas as rotas
+
+# Criar métricas Prometheus
+REQUEST_COUNT = Counter('flask_request_count', 'Número de requisições recebidas', ['method', 'endpoint'])
+JUROS_CALCULADOS = Gauge('juros_calculados', 'Total de juros calculados')
 
 def calcular_juros_totais(divida, taxa_juros_anual, anos):
     # Convertendo taxa anual para mensal e anos para meses
@@ -16,10 +21,16 @@ def calcular_juros_totais(divida, taxa_juros_anual, anos):
     total_pago = M * n
     juros_totais = total_pago - divida
 
+    # Atualiza a métrica de juros totais
+    JUROS_CALCULADOS.set(juros_totais)
+
     return juros_totais
 
 @app.route('/calcular_divida', methods=['POST'])
 def calcular_divida():
+    # Incrementa o contador de requisições
+    REQUEST_COUNT.labels(method='POST', endpoint='/calcular_divida').inc()
+
     data = request.json
     
     # Obtendo os dados do JSON
@@ -47,6 +58,11 @@ def calcular_divida():
         "meses": round(meses, 2),
         "juros_totais": round(juros_totais, 2)
     }), 200
+
+# Endpoint para expor as métricas para Prometheus
+@app.route('/metrics')
+def metrics():
+    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5003)

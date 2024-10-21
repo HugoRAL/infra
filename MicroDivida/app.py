@@ -7,7 +7,7 @@ app = Flask(__name__)
 CORS(app)  # Habilita CORS para todas as rotas
 
 # URL do contêiner que já possui a função buscar_divida
-BUSCAR_DIVIDA_URL = 'http://172.17.0.4:5000/buscar_divida'  # Atualizado para o novo IP
+BUSCAR_DIVIDA_URL = 'http://172.17.0.3:5000/buscar_divida'  # Atualizado para o novo IP
 
 @app.route('/micro_buscar_divida', methods=['POST'])
 def micro_buscar_divida():
